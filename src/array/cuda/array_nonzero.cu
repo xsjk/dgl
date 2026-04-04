@@ -7,6 +7,7 @@
 #include <dgl/array.h>
 
 #include <cub/cub.cuh>
+#include <thrust/iterator/counting_iterator.h>
 
 #include "../../runtime/cuda/cuda_common.h"
 #include "./utils.h"
@@ -39,7 +40,7 @@ IdArray NonZero(IdArray array) {
   int64_t* const out_data = static_cast<int64_t*>(ret->data);
 
   IsNonZeroIndex<IdType> comp(in_data);
-  cub::CountingInputIterator<int64_t> counter(0);
+  thrust::counting_iterator<int64_t> counter(0);
 
   // room for cub to output on GPU
   int64_t* d_num_nonzeros =
