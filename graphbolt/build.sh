@@ -2,6 +2,8 @@
 # Helper script to build graphbolt libraries for PyTorch
 set -e
 
+MAKE_JOBS="${CMAKE_BUILD_PARALLEL_LEVEL:-2}"
+
 mkdir -p build
 mkdir -p $BINDIR/graphbolt
 cd build
@@ -33,7 +35,7 @@ echo "graphbolt cmake flags: $CMAKE_FLAGS"
 
 if [ $# -eq 0 ]; then
   $CMAKE_COMMAND $CMAKE_FLAGS ..
-  make -j
+  make -j"${MAKE_JOBS}"
   cp -v $CPSOURCE $BINDIR/graphbolt
 else
   for PYTHON_INTERP in $@; do
@@ -41,7 +43,7 @@ else
     mkdir -p $TORCH_VER
     cd $TORCH_VER
     $CMAKE_COMMAND $CMAKE_FLAGS -DPYTHON_INTERP=$PYTHON_INTERP ../..
-    make -j
+    make -j"${MAKE_JOBS}"
     cp -v $CPSOURCE $BINDIR/graphbolt
     cd ..
   done
