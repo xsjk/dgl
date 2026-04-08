@@ -89,9 +89,13 @@ CUB_INLINE void swap(const PairRef<DType>& r1, const PairRef<DType>& r2) {
 }
 
 template <typename DType>
-struct PairIterator : public std::iterator<
-                          std::random_access_iterator_tag, Pair<DType>,
-                          std::ptrdiff_t, Pair<DType*>, PairRef<DType>> {
+struct PairIterator {
+  using iterator_category = std::random_access_iterator_tag;
+  using value_type = Pair<DType>;
+  using difference_type = std::ptrdiff_t;
+  using pointer = Pair<DType*>;
+  using reference = PairRef<DType>;
+
   PairIterator() = default;
   PairIterator(const PairIterator& other) = default;
   PairIterator(PairIterator&& other) = default;

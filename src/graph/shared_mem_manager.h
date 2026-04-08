@@ -39,7 +39,9 @@ class SharedMemManager : public dmlc::Stream {
 
   // delegate methods to strm_
   virtual size_t Read(void* ptr, size_t size) { return strm_->Read(ptr, size); }
-  virtual void Write(const void* ptr, size_t size) { strm_->Write(ptr, size); }
+  virtual size_t Write(const void* ptr, size_t size) {
+    return strm_->Write(ptr, size);
+  }
 
   using dmlc::Stream::Read;
   using dmlc::Stream::Write;

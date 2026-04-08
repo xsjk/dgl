@@ -8,7 +8,7 @@
 #include <tensoradapter_exports.h>
 #ifdef DGL_USE_CUDA
 #include <ATen/cuda/CUDAContext.h>
-#include <ATen/cuda/CachingHostAllocator.h>
+#include <ATen/cuda/PinnedMemoryAllocator.h>
 #include <c10/cuda/CUDACachingAllocator.h>
 #include <c10/cuda/CUDAStream.h>
 #include <cuda_runtime.h>
@@ -68,7 +68,8 @@ class CUDAHostDeleter {
 
 TA_EXPORTS void* CUDARawHostAlloc(
     size_t nbytes, void** ctx, void** raw_deleter) {
-  auto data_ptr = at::cuda::getCachingHostAllocator()->allocate(nbytes);
+  auto* host_allocator = at::cuda::getPinnedMemoryAllocator();
+  auto data_ptr = host_allocator->allocate(nbytes);
   auto raw = data_ptr.get();
   // Return the raw ctx ptr for recording event.
   *ctx = data_ptr.get_context();
@@ -87,7 +88,7 @@ TA_EXPORTS void CUDARawHostDelete(void** raw_deleter) {
 
 TA_EXPORTS void CUDARecordHostAlloc(
     void* ptr, void* ctx, cudaStream_t stream, int device_id) {
-  at::cuda::CachingHostAllocator_recordEvent(
+  at::cuda::getPinnedMemoryAllocator()->record_event(
       ptr, ctx,
       c10::cuda::CUDAStream(
           c10::cuda::CUDAStream::UNCHECKED,
@@ -98,7 +99,7 @@ TA_EXPORTS void CUDARecordHostAlloc(
 }
 
 TA_EXPORTS void CUDAHostAllocatorEmptyCache() {
-  at::cuda::CachingHostAllocator_emptyCache();
+  at::cuda::getPinnedMemoryAllocator()->empty_cache();
 }
 #endif  // DGL_USE_CUDA
 };

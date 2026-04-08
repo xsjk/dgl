@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # cmake utils
 include(cmake/util/Util.cmake)
 include(cmake/util/MshadowUtil.cmake)
-include(cmake/util/FindCUDA.cmake)
 
 # Options for building DGL.
 # NOTE: Please avoid editing this file to change build type. Instead, using
@@ -141,10 +140,14 @@ if(USE_CUDA)
   project(dgl C CXX)
   include(cmake/modules/CUDA.cmake)
   message(STATUS "Use external CCCL library for a consistent API and performance.")
-  cuda_include_directories(BEFORE "${CMAKE_SOURCE_DIR}/third_party/cccl/thrust")
-  cuda_include_directories(BEFORE "${CMAKE_SOURCE_DIR}/third_party/cccl/cub")
-  cuda_include_directories(BEFORE "${CMAKE_SOURCE_DIR}/third_party/cccl/libcudacxx/include")
+  include_directories(BEFORE "${CMAKE_SOURCE_DIR}/third_party/cccl/thrust")
+  include_directories(BEFORE "${CMAKE_SOURCE_DIR}/third_party/cccl/cub")
+  include_directories(BEFORE "${CMAKE_SOURCE_DIR}/third_party/cccl/libcudacxx/include")
 endif(USE_CUDA)
+
+if(USE_CUDA)
+  string(REPLACE ";" "\\;" DGL_CUDA_ARCHITECTURES_ESCAPED "${CMAKE_CUDA_ARCHITECTURES}")
+endif()
 
 # initial variables
 if(NOT MSVC)
@@ -242,7 +245,8 @@ if(USE_CUDA)
   )
   list(APPEND DGL_SRC ${DGL_CUDA_SRC})
   dgl_config_cuda(DGL_LINKER_LIBS)
-  cuda_add_library(dgl SHARED ${DGL_SRC})
+  add_library(dgl SHARED ${DGL_SRC})
+  dgl_configure_cuda_target(dgl)
 else(USE_CUDA)
   add_library(dgl SHARED ${DGL_SRC})
 endif(USE_CUDA)
@@ -381,7 +385,8 @@ if(USE_CUDA)
   file(GLOB gpu_cache_src
     third_party/HugeCTR/gpu_cache/src/nv_gpu_cache.cu
   )
-  cuda_add_library(gpu_cache STATIC ${gpu_cache_src})
+  add_library(gpu_cache STATIC ${gpu_cache_src})
+  dgl_configure_cuda_target(gpu_cache)
   target_include_directories(gpu_cache PRIVATE "third_party/HugeCTR/gpu_cache/include")
   target_include_directories(dgl PRIVATE "third_party/HugeCTR/gpu_cache/include")
   list(APPEND DGL_LINKER_LIBS gpu_cache)
@@ -415,7 +420,6 @@ if(BUILD_TORCH)
       tensoradapter_pytorch
       ${CMAKE_COMMAND} -E env
       CMAKE_COMMAND=${CMAKE_CMD}
-      CUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
       USE_CUDA=${USE_CUDA}
       EXTERNAL_DMLC_LIB_PATH=${EXTERNAL_DMLC_LIB_PATH}
       BINDIR=${BINDIR}
@@ -428,7 +432,6 @@ if(BUILD_TORCH)
       tensoradapter_pytorch
       ${CMAKE_COMMAND} -E env
       CMAKE_COMMAND=${CMAKE_CMD}
-      CUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
       USE_CUDA=${USE_CUDA}
       EXTERNAL_DMLC_LIB_PATH=${EXTERNAL_DMLC_LIB_PATH}
       BINDIR=${CMAKE_CURRENT_BINARY_DIR}
@@ -475,8 +478,8 @@ if(BUILD_SPARSE)
       ALL
       ${CMAKE_COMMAND} -E env
       CMAKE_COMMAND=${CMAKE_CMD}
-      CUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
       USE_CUDA=${USE_CUDA}
+      DGL_CUDA_ARCHITECTURES="${DGL_CUDA_ARCHITECTURES_ESCAPED}"
       BINDIR=${BINDIR}
       INCLUDEDIR="${DGL_INCLUDE_DIRS}"
       CFLAGS=${CMAKE_C_FLAGS}
@@ -492,8 +495,8 @@ if(BUILD_SPARSE)
       ALL
       ${CMAKE_COMMAND} -E env
       CMAKE_COMMAND=${CMAKE_CMD}
-      CUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
       USE_CUDA=${USE_CUDA}
+      DGL_CUDA_ARCHITECTURES="${DGL_CUDA_ARCHITECTURES_ESCAPED}"
       BINDIR=${CMAKE_CURRENT_BINARY_DIR}
       INCLUDEDIR="${DGL_INCLUDE_DIRS}"
       CFLAGS=${CMAKE_C_FLAGS}
@@ -508,7 +511,6 @@ endif(BUILD_SPARSE)
 
 if(BUILD_GRAPHBOLT)
   message(STATUS "Configuring graphbolt library")
-  string(REPLACE ";" "\\;" CUDA_ARCHITECTURES_ESCAPED "${CUDA_ARCHITECTURES}")
   file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR} BINDIR)
   file(TO_NATIVE_PATH ${CMAKE_COMMAND} CMAKE_CMD)
   if(MSVC)
@@ -518,12 +520,11 @@ if(BUILD_GRAPHBOLT)
       ALL
       ${CMAKE_COMMAND} -E env
       CMAKE_COMMAND=${CMAKE_CMD}
-      CUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
       USE_CUDA=${USE_CUDA}
       BINDIR=${BINDIR}
       CFLAGS=${CMAKE_C_FLAGS}
       CXXFLAGS=${CMAKE_CXX_FLAGS}
-      CUDAARCHS="${CUDA_ARCHITECTURES_ESCAPED}"
+      DGL_CUDA_ARCHITECTURES="${DGL_CUDA_ARCHITECTURES_ESCAPED}"
       LDFLAGS=${CMAKE_SHARED_LINKER_FLAGS}
       cmd /e:on /c ${BUILD_SCRIPT} ${TORCH_PYTHON_INTERPS}
       DEPENDS ${BUILD_SCRIPT}
@@ -535,13 +536,12 @@ if(BUILD_GRAPHBOLT)
       ALL
       ${CMAKE_COMMAND} -E env
       CMAKE_COMMAND=${CMAKE_CMD}
-      CUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
       USE_CUDA=${USE_CUDA}
       USE_LIBURING=${USE_LIBURING}
       BINDIR=${CMAKE_CURRENT_BINARY_DIR}
       CFLAGS=${CMAKE_C_FLAGS}
       CXXFLAGS=${CMAKE_CXX_FLAGS}
-      CUDAARCHS="${CUDA_ARCHITECTURES_ESCAPED}"
+      DGL_CUDA_ARCHITECTURES="${DGL_CUDA_ARCHITECTURES_ESCAPED}"
       LDFLAGS=${CMAKE_SHARED_LINKER_FLAGS}
       bash ${BUILD_SCRIPT} ${TORCH_PYTHON_INTERPS}
       DEPENDS ${BUILD_SCRIPT}

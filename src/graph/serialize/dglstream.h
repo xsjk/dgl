@@ -32,9 +32,9 @@ class DGLStream : public dmlc::Stream {
     return strm_->Read(ptr, size);
   }
 
-  void Write(const void *ptr, size_t size) override {
+  size_t Write(const void *ptr, size_t size) override {
     count_ += size;
-    strm_->Write(ptr, size);
+    return strm_->Write(ptr, size);
   }
 
   using dmlc::Stream::Read;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 project(tensoradapter_pytorch C CXX)
 
 # Find PyTorch cmake files and PyTorch versions with the python interpreter $PYTHON_INTERP

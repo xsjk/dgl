@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(dgl_sparse C CXX)
 
 # Find PyTorch cmake files and PyTorch versions with the python interpreter $PYTHON_INTERP
@@ -62,6 +62,10 @@ target_include_directories(
 target_link_libraries(${LIB_DGL_SPARSE_NAME} ${SPARSE_LINKER_LIBS})
 target_compile_definitions(${LIB_DGL_SPARSE_NAME} PRIVATE TORCH_VERSION_MAJOR=${TORCH_VERSION_MAJOR})
 target_compile_definitions(${LIB_DGL_SPARSE_NAME} PRIVATE TORCH_VERSION_MINOR=${TORCH_VERSION_MINOR})
+if(USE_CUDA)
+  set_target_properties(${LIB_DGL_SPARSE_NAME} PROPERTIES CUDA_ARCHITECTURES "${DGL_CUDA_ARCHITECTURES}")
+  set_property(TARGET ${LIB_DGL_SPARSE_NAME} PROPERTY CUDA_STANDARD 17)
+endif()
 
 target_include_directories(${LIB_DGL_SPARSE_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/third_party/dmlc-core/include")
 message(STATUS "DGL include directories: ${DGL_INCLUDE_DIRS}")

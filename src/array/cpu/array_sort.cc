@@ -48,10 +48,13 @@ void swap(const PairRef<V1, V2>& r1, const PairRef<V1, V2>& r2) {
 }
 
 template <typename V1, typename V2>
-struct PairIterator
-    : public std::iterator<
-          std::random_access_iterator_tag, std::pair<V1, V2>, std::ptrdiff_t,
-          std::pair<V1*, V2*>, PairRef<V1, V2>> {
+struct PairIterator {
+  using iterator_category = std::random_access_iterator_tag;
+  using value_type = std::pair<V1, V2>;
+  using difference_type = std::ptrdiff_t;
+  using pointer = std::pair<V1*, V2*>;
+  using reference = PairRef<V1, V2>;
+
   PairIterator() = default;
   PairIterator(const PairIterator& other) = default;
   PairIterator(PairIterator&& other) = default;

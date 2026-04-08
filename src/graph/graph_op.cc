@@ -11,6 +11,7 @@
 #include <dgl/runtime/parallel_for.h>
 
 #include <algorithm>
+#include <iterator>
 
 #include "../c_api_common.h"
 
@@ -19,8 +20,14 @@ using namespace dgl::runtime;
 namespace dgl {
 namespace {
 // generate consecutive dgl ids
-class RangeIter : public std::iterator<std::input_iterator_tag, dgl_id_t> {
+class RangeIter {
  public:
+  using iterator_category = std::input_iterator_tag;
+  using value_type = dgl_id_t;
+  using difference_type = std::ptrdiff_t;
+  using pointer = const dgl_id_t*;
+  using reference = dgl_id_t;
+
   explicit RangeIter(dgl_id_t from) : cur_(from) {}
 
   RangeIter& operator++() {

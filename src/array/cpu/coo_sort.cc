@@ -56,11 +56,13 @@ void swap(const TupleRef<IdType>& r1, const TupleRef<IdType>& r2) {
 }
 
 template <typename IdType>
-struct CooIterator
-    : public std::iterator<
-          std::random_access_iterator_tag, std::tuple<IdType, IdType, IdType>,
-          std::ptrdiff_t, std::tuple<IdType*, IdType*, IdType*>,
-          TupleRef<IdType>> {
+struct CooIterator {
+  using iterator_category = std::random_access_iterator_tag;
+  using value_type = std::tuple<IdType, IdType, IdType>;
+  using difference_type = std::ptrdiff_t;
+  using pointer = std::tuple<IdType*, IdType*, IdType*>;
+  using reference = TupleRef<IdType>;
+
   CooIterator() = default;
   CooIterator(const CooIterator& other) = default;
   CooIterator(CooIterator&& other) = default;
